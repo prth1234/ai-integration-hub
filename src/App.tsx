@@ -6,12 +6,12 @@ import PricingPage from "@/pages/pricing";
 import BlogPage from "@/pages/blog";
 import AboutPage from "@/pages/about";
 // import Chatbot from "@/pages/chatbot"
-import chatBotMain from "@/pages/chatbotMain"
+import ChatBotMain from "@/pages/chatbotMain"
 function App() {
   return (
     <Routes>
       <Route element={<IndexPage />} path="/" />
-      <Route element={<IndexPage />} path="/chat" />
+      <Route element={<ChatBotMain />} path="/chat" />
 
 
       {/* <Route element={<DocsPage />} path="/docs" />

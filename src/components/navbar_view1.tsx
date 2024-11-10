@@ -5,6 +5,17 @@ import { Input } from "@nextui-org/input";
 import LikeCounterButton from "@/components/likes"
 import {FloatingDockDemo} from "@/components/floating-dock"
 import SearchDialog from './SearchDialog'
+import { MessageSquare, Settings, HelpCircle, User, LogOut } from 'lucide-react';
+import { BiDotsHorizontal } from "react-icons/bi";
+
+import {
+
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+  Avatar,
+} from "@nextui-org/react";
 import {
   Navbar as NextUINavbar,
   NavbarBrand,
@@ -28,7 +39,7 @@ import {
 } from "@/components/icons";
 import { Logo } from "@/components/icons";
 
-export const Navbar = () => {
+export const ChatbotNavbar = () => {
   const searchInput = (
     <Input
       aria-label="Search"
@@ -63,7 +74,7 @@ export const Navbar = () => {
             {/* <p className="font-bold text-inherit">ACME</p> */}
           </Link>
         </NavbarBrand>
-        <div className="hidden lg:flex gap-4 justify-start ml-2">
+        {/* <div className="hidden lg:flex gap-4 justify-start ml-2">
           {siteConfig.navItems.map((item) => (
             <NavbarItem key={item.href}>
               <Link
@@ -78,7 +89,7 @@ export const Navbar = () => {
               </Link>
             </NavbarItem>
           ))}
-        </div>
+        </div> */}
       </NavbarContent>
       {/* <FloatingDockDemo/> */}
       <NavbarContent
@@ -109,7 +120,7 @@ export const Navbar = () => {
           >
             
           </Button> */}
-          <LikeCounterButton/>
+          {/* <LikeCounterButton/> */}
         </NavbarItem>
       </NavbarContent>
 
@@ -145,6 +156,46 @@ export const Navbar = () => {
         <SearchDialog />
 
       </NavbarMenu>
+      <NavbarItem>
+          <Dropdown placement="bottom-end">
+            <DropdownTrigger>
+              <Avatar
+                as="button"
+                className="transition-transform"
+                color="secondary"
+                name="Jason Hughes"
+                size="sm"
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+              />
+            </DropdownTrigger>
+            <DropdownMenu aria-label="Profile Actions">
+
+              <DropdownItem
+                key="profile"
+                startContent={<User className="w-4 h-4" />}
+              >
+                Profile
+              </DropdownItem>
+          
+              <DropdownItem
+                key="settings"
+                startContent={<Settings className="w-4 h-4" />}
+              >
+                Settings
+              </DropdownItem>
+              <DropdownItem
+                key="logout"
+                className="text-danger"
+                color="danger"
+                startContent={<LogOut className="w-4 h-4" />}
+              >
+                Log Out
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        </NavbarItem>
     </NextUINavbar>
   );
 };
+
+export default ChatbotNavbar;

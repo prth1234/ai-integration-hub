@@ -9,6 +9,8 @@ import { MessageCircle, Zap, Clock, Lock, Puzzle, Paintbrush } from 'lucide-reac
 import ChatBotCard from '@/components/ChatBotCard';
 import AppleCardsCarouselDemo from '../components/apple-cards-carousel';
 import BackgroundLines from '@/components/BackgroundLines'
+import { useNavbar } from '@nextui-org/navbar';
+import { useNavigate } from 'react-router-dom';
 
 // Add motion from framer-motion for animations
 
@@ -36,6 +38,10 @@ export default function ChatbotLanding() {
       description: "Easy integration with any website or platform through our flexible API"
     }
   ];
+  const navigate = useNavigate()
+  const handleDemo = () => {
+    navigate('/chat');
+};
 
   return (
     <DefaultLayout>
@@ -62,6 +68,7 @@ export default function ChatbotLanding() {
               variant="shadow"
               radius="full"
               className="font-semibold"
+              onClick={handleDemo}
             >
               Try Demo
             </Button>

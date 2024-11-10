@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardBody, Chip, Button, Input, Avatar } from "@nextui-org/react";
+import { Card, CardBody, Chip, Button, Input, Avatar, useNavbar } from "@nextui-org/react";
 import { SendHorizonal, Mic, Image as ImageIcon, Smile, Sparkles, Bot, Wand2 } from "lucide-react";
 const animations = `
   @keyframes messageSlideIn {

@@ -8,11 +8,56 @@ import {
   ScrollShadow,
   Spinner,
   Avatar,
-  Popover,
-  PopoverTrigger,
-  PopoverContent
 } from "@nextui-org/react";
 import { Send, Bot, Sparkles, Copy, Search, Wand2, MessageSquareMore, Share2 } from "lucide-react";
+
+const GlobalStyles = () => (
+  <style>{`
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-50px); }
+    }
+    
+    @keyframes slideIn {
+      from { 
+        transform: translateY(20px); 
+        opacity: 0; 
+      }
+      to { 
+        transform: translateY(0); 
+        opacity: 1; 
+      }
+    }
+    
+    @keyframes scaleIn {
+      from { 
+        transform: scale(0.9) translateY(10px); 
+        opacity: 0; 
+      }
+      to { 
+        transform: scale(1) translateY(0); 
+        opacity: 1; 
+      }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .animate-slideIn {
+      animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    .animate-scaleIn {
+      animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    .animate-fadeIn {
+      animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  `}</style>
+);
 
 export default function ChatBotMain() {
   const [messages, setMessages] = useState([
@@ -21,13 +66,142 @@ export default function ChatBotMain() {
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedText, setSelectedText] = useState('');
+  const [selectionPosition, setSelectionPosition] = useState(null);
   const scrollRef = useRef(null);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isLoading]);
+
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    const text = selection.toString().trim();
+    
+    if (text && text.length > 1) {  // Only show menu if more than 1 character is selected
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      
+      setSelectedText(text);
+      setSelectionPosition({
+        top: rect.top - 25,
+        left: rect.left + (rect.width / 2) - 60,
+      });
+    } else {
+      setSelectedText('');
+      setSelectionPosition(null);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setSelectedText('');
+        setSelectionPosition(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mouseup', handleTextSelection);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('mouseup', handleTextSelection);
+    };
+  }, []);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(selectedText);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+    setSelectedText('');
+    setSelectionPosition(null);
+  };
+
+  const SelectionMenu = () => {
+    if (!selectedText || !selectionPosition) return null;
+
+    const menuItems = [
+      { 
+        icon: Copy, 
+        bg: "bg-gradient-to-r from-blue-500 to-cyan-500",
+        label: "Copy",
+        onClick: handleCopy
+      },
+      { 
+        icon: Search, 
+        bg: "bg-gradient-to-r from-purple-500 to-pink-500",
+        label: "Search",
+        onClick: () => {
+          window.open(`https://www.google.com/search?q=${selectedText}`, '_blank');
+          setSelectedText('');
+          setSelectionPosition(null);
+        }
+      },
+      { 
+        icon: Wand2, 
+        bg: "bg-gradient-to-r from-amber-500 to-orange-500",
+        label: "Rewrite",
+        onClick: () => {
+          console.log('Rewrite:', selectedText);
+          setSelectedText('');
+          setSelectionPosition(null);
+        }
+      },
+    ];
+
+    return (
+      <div
+        ref={menuRef}
+        className="fixed z-50 flex gap-0.5 p-1 bg-white/20 dark:bg-black/20 backdrop-blur-xl rounded-lg shadow-2xl border border-white/20 dark:border-white/10 animate-scaleIn"
+        style={{
+          top: `${selectionPosition.top}px`,
+          left: `${selectionPosition.left}px`,
+        }}
+      >
+        {menuItems.map(({ icon: Icon, bg, label, onClick }) => (
+          <button
+            key={label}
+            onClick={onClick}
+            className="group relative"
+          >
+            <div className={`
+              p-1.5 rounded-md ${bg} shadow-lg 
+              transition-all duration-300 
+              hover:scale-110 hover:shadow-xl 
+              active:scale-95
+              ring-1 ring-transparent hover:ring-white/20
+              backdrop-blur-sm
+            `}>
+              <Icon className="w-2.5 h-2.5 text-white transform transition-transform duration-300 group-hover:scale-110" />
+            </div>
+            <div className="
+              absolute -top-6 left-1/2 transform -translate-x-1/2 
+              bg-black dark:bg-white text-white dark:text-black 
+              text-[10px] font-medium py-0.5 px-1.5 rounded-md
+              opacity-0 group-hover:opacity-100 
+              transition-all duration-200 
+              scale-95 group-hover:scale-100
+              pointer-events-none
+              shadow-xl
+              whitespace-nowrap
+            ">
+              {label}
+              <div className="
+                absolute -bottom-1 left-1/2 transform -translate-x-1/2 
+                w-1.5 h-1.5 bg-black dark:bg-white rotate-45
+              "/>
+            </div>
+          </button>
+        ))}
+      </div>
+    );
+  };
 
   const handleSendMessage = async (event) => {
     event.preventDefault();
@@ -48,65 +222,6 @@ export default function ChatBotMain() {
     }
   };
 
-  const handleCopy = (text) => {
-    navigator.clipboard.writeText(text);
-  };
-
-  const MessageActions = ({ text }) => (
-    <Popover placement="top">
-      <PopoverTrigger>
-        <Button
-          isIconOnly
-          variant="light"
-          size="sm"
-          className="opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-2"
-        >
-          <MessageSquareMore className="w-4 h-4" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-2">
-        <div className="flex flex-col gap-2">
-          <Button 
-            variant="flat" 
-            className="bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800"
-            startContent={<Copy className="w-4 h-4" />}
-            onClick={() => handleCopy(text)}
-          >
-            Copy
-          </Button>
-          <Button 
-            variant="flat" 
-            className="bg-purple-100 dark:bg-purple-900 hover:bg-purple-200 dark:hover:bg-purple-800"
-            startContent={<Search className="w-4 h-4" />}
-          >
-            Lookup
-          </Button>
-          <Button 
-            variant="flat" 
-            className="bg-amber-100 dark:bg-amber-900 hover:bg-amber-200 dark:hover:bg-amber-800"
-            startContent={<Wand2 className="w-4 h-4" />}
-          >
-            Rewrite
-          </Button>
-          <Button 
-            variant="flat" 
-            className="bg-green-100 dark:bg-green-900 hover:bg-green-200 dark:hover:bg-green-800"
-            startContent={<MessageSquareMore className="w-4 h-4" />}
-          >
-            Explain
-          </Button>
-          <Button 
-            variant="flat" 
-            className="bg-rose-100 dark:bg-rose-900 hover:bg-rose-200 dark:hover:bg-rose-800"
-            startContent={<Share2 className="w-4 h-4" />}
-          >
-            Share
-          </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-
   const bubbles = Array.from({ length: 20 }, (_, i) => ({
     id: i,
     size: Math.random() * 100 + 50,
@@ -117,6 +232,9 @@ export default function ChatBotMain() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-transparent">
+      <GlobalStyles />
+      <SelectionMenu />
+      
       {bubbles.map((bubble) => (
         <div
           key={bubble.id}
@@ -153,21 +271,20 @@ export default function ChatBotMain() {
                       />
                     )}
                     <Card
-                      className={`max-w-[80%] group transition-all duration-300 hover:scale-[1.02] ${
+                      className={`max-w-[80%] transition-all duration-300 hover:scale-[1.02] ${
                         msg.sender === 'user' 
                           ? 'bg-black dark:bg-white' 
                           : 'bg-black/10 dark:bg-white/10'
-                      } border-none relative`}
+                      } border-none`}
                     >
                       <CardBody className="p-3 relative overflow-hidden">
-                        <p className={`text-sm select-text ${
+                        <p className={`text-sm ${
                           msg.sender === 'user' 
                             ? 'text-white dark:text-black' 
                             : 'text-black dark:text-white'
                         }`}>
                           {msg.text}
                         </p>
-                        {msg.sender === 'bot' && <MessageActions text={msg.text} />}
                       </CardBody>
                     </Card>
                     {msg.sender === 'user' && (
@@ -251,40 +368,6 @@ export default function ChatBotMain() {
           </CardBody>
         </Card>
       </div>
-
-      <style jsx global>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-50px); }
-        }
-        
-        @keyframes slideIn {
-          from { transform: translateY(20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        
-        @keyframes scaleIn {
-          from { transform: scale(0.8); opacity: 0; }
-          to { transform: scale(1); opacity: 1; }
-        }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        
-        .animate-slideIn {
-          animation: slideIn 0.3s ease-out forwards;
-        }
-        
-        .animate-scaleIn {
-          animation: scaleIn 0.3s ease-out forwards;
-        }
-        
-        .animate-fadeIn {
-          animation: fadeIn 0.5s ease-out forwards;
-        }
-      `}</style>
     </div>
   );
 }
